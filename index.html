@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real Count OSIS - SMPN 4 Majenang</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Library Grafik (Chart.js) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body { font-family: 'Poppins', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen">
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="bg-blue-600 text-white p-2 rounded-lg">
+                    <i class="fas fa-chart-pie"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight">Real Count Hasil Suara</h1>
+                    <p class="text-xs text-gray-500">Pemilihan Ketua OSIS - SMPN 4 Majenang</p>
+                </div>
+            </div>
+            <button onclick="fetchData()" class="text-sm bg-blue-100 text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-200 transition font-medium">
+                <i class="fas fa-sync-alt mr-2"></i> Refresh Data
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto px-4 py-8">
+        
+        <!-- Kartu Total Suara -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 text-center">
+                <h3 class="text-gray-500 text-sm font-medium uppercase">Total Suara Masuk</h3>
+                <p id="total-suara" class="text-4xl font-bold text-blue-600 mt-2">-</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 text-center">
+                <h3 class="text-gray-500 text-sm font-medium uppercase">Suara Terbanyak</h3>
+                <p id="top-candidate" class="text-2xl font-bold text-green-600 mt-2">-</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 text-center">
+                <h3 class="text-gray-500 text-sm font-medium uppercase">Status Data</h3>
+                <p id="last-update" class="text-sm font-medium text-gray-600 mt-3">Belum Update</p>
+            </div>
+        </div>
+
+        <!-- Grafik Utama -->
+        <div class="bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-gray-100 mb-8">
+            <h2 class="text-xl font-bold mb-6 text-center">Grafik Perolehan Suara</h2>
+            <div class="relative h-[300px] md:h-[400px] w-full">
+                <canvas id="votingChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Tabel Detail -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
+                <h3 class="font-bold text-gray-700">Rincian Perolehan</h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm text-gray-600">
+                    <thead class="bg-gray-50 text-xs uppercase font-semibold text-gray-500">
+                        <tr>
+                            <th class="px-6 py-3">No. Paslon</th>
+                            <th class="px-6 py-3">Nama Kandidat</th>
+                            <th class="px-6 py-3 text-right">Jumlah Suara</th>
+                            <th class="px-6 py-3 text-right">Persentase</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 font-medium text-gray-900">01</td>
+                            <td class="px-6 py-4">Andi & Budi</td>
+                            <td id="suara-01" class="px-6 py-4 text-right font-bold text-blue-600">0</td>
+                            <td id="persen-01" class="px-6 py-4 text-right">0%</td>
+                        </tr>
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 font-medium text-gray-900">02</td>
+                            <td class="px-6 py-4">Wati & Ani</td>
+                            <td id="suara-02" class="px-6 py-4 text-right font-bold text-blue-600">0</td>
+                            <td id="persen-02" class="px-6 py-4 text-right">0%</td>
+                        </tr>
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 font-medium text-gray-900">03</td>
+                            <td class="px-6 py-4">Zaenal & Arifin</td>
+                            <td id="suara-03" class="px-6 py-4 text-right font-bold text-blue-600">0</td>
+                            <td id="persen-03" class="px-6 py-4 text-right">0%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="text-center py-6 text-gray-400 text-xs">
+        &copy; 2026 Tim IT SMPN 4 Majenang
+    </footer>
+
+    <script>
+        // === KONFIGURASI ===
+        // 1. Ubah ke TRUE jika Google Script sudah dideploy
+        const USE_GOOGLE_SHEET = true; 
+        
+        // 2. Masukkan URL Web App Script Anda (SAMA DENGAN APLIKASI VOTING)
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbxrrDcdrGmRyFzRiI5gF5k11cbzuEeK5PFj4jOEp0AsXZmyscyM_ezROs1M4RyFu_e5/exec"; 
+
+        // Inisialisasi Chart
+        const ctx = document.getElementById('votingChart').getContext('2d');
+        const votingChart = new Chart(ctx, {
+            type: 'bar', // Bisa diganti 'pie' atau 'doughnut'
+            data: {
+                labels: ['Paslon 01 (Andi & Budi)', 'Paslon 02 (Wati & Ani)', 'Paslon 03 (Zaenal & Arifin)'],
+                datasets: [{
+                    label: 'Jumlah Suara',
+                    data: [0, 0, 0],
+                    backgroundColor: [
+                        'rgba(59, 130, 246, 0.7)', // Biru
+                        'rgba(16, 185, 129, 0.7)', // Hijau
+                        'rgba(245, 158, 11, 0.7)'  // Orange
+                    ],
+                    borderColor: [
+                        'rgb(59, 130, 246)',
+                        'rgb(16, 185, 129)',
+                        'rgb(245, 158, 11)'
+                    ],
+                    borderWidth: 2,
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false } // Sembunyikan legend untuk chart bar
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#f3f4f6' }
+                    }
+                }
+            }
+        });
+
+        // Fungsi Ambil Data
+        async function fetchData() {
+            // Update status loading
+            document.getElementById('last-update').innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Sedang memuat...';
+
+            try {
+                let data;
+
+                if (USE_GOOGLE_SHEET) {
+                    // Panggil Script dengan action=getResults
+                    const response = await fetch(`${GAS_URL}?action=getResults`);
+                    data = await response.json();
+                } else {
+                    // Simulasi Data Dummy (Jika offline)
+                    await new Promise(r => setTimeout(r, 1000));
+                    data = { "Paslon 01": 120, "Paslon 02": 85, "Paslon 03": 200 };
+                }
+
+                updateUI(data);
+
+            } catch (error) {
+                console.error("Gagal mengambil data:", error);
+                document.getElementById('last-update').textContent = "Gagal memuat data";
+            }
+        }
+
+        // Fungsi Update Tampilan
+        function updateUI(data) {
+            const p1 = data["Paslon 01"] || 0;
+            const p2 = data["Paslon 02"] || 0;
+            const p3 = data["Paslon 03"] || 0;
+            const total = p1 + p2 + p3;
+
+            // 1. Update Angka Total & Detail
+            document.getElementById('total-suara').textContent = total;
+            document.getElementById('suara-01').textContent = p1;
+            document.getElementById('suara-02').textContent = p2;
+            document.getElementById('suara-03').textContent = p3;
+
+            // 2. Hitung Persentase
+            document.getElementById('persen-01').textContent = total ? Math.round((p1/total)*100) + '%' : '0%';
+            document.getElementById('persen-02').textContent = total ? Math.round((p2/total)*100) + '%' : '0%';
+            document.getElementById('persen-03').textContent = total ? Math.round((p3/total)*100) + '%' : '0%';
+
+            // 3. Update Chart
+            votingChart.data.datasets[0].data = [p1, p2, p3];
+            votingChart.update();
+
+            // 4. Update Suara Terbanyak
+            let winner = "-";
+            let maxVote = Math.max(p1, p2, p3);
+            if (total > 0) {
+                if (maxVote === p1) winner = "Paslon 01";
+                else if (maxVote === p2) winner = "Paslon 02";
+                else if (maxVote === p3) winner = "Paslon 03";
+            }
+            document.getElementById('top-candidate').textContent = winner;
+
+            // 5. Update Waktu
+            const now = new Date();
+            document.getElementById('last-update').textContent = 'Update: ' + now.toLocaleTimeString();
+        }
+
+        // Jalankan saat halaman dibuka
+        fetchData();
+
+        // (Opsional) Auto-refresh setiap 30 detik
+        setInterval(fetchData, 30000);
+
+    </script>
+</body>
+</html>
