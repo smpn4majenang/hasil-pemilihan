@@ -3,13 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Real Count OSIS - SMPN 4 Majenang</title>
+    <title>Real Count E-Voting - SMPN 4 Majenang</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Library Grafik (Chart.js) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
@@ -20,207 +18,257 @@
 
     <!-- Header -->
     <header class="bg-white shadow-sm sticky top-0 z-50">
-        <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+        <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
             <div class="flex items-center space-x-3">
-                <div class="bg-blue-600 text-white p-2 rounded-lg">
-                    <i class="fas fa-chart-pie"></i>
+                <div class="bg-indigo-600 text-white p-2 rounded-lg">
+                    <i class="fas fa-chart-bar"></i>
                 </div>
                 <div>
                     <h1 class="font-bold text-lg leading-tight">Real Count Hasil Suara</h1>
-                    <p class="text-xs text-gray-500">Pemilihan Ketua OSIS - SMPN 4 Majenang</p>
+                    <p class="text-xs text-gray-500">Pemilihan OSIS & DP - SMPN 4 Majenang</p>
                 </div>
             </div>
-            <button onclick="fetchData()" class="text-sm bg-blue-100 text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-200 transition font-medium">
-                <i class="fas fa-sync-alt mr-2"></i> Refresh Data
-            </button>
+            <div class="flex items-center space-x-3">
+                <span id="last-update" class="text-xs font-medium text-gray-500 hidden sm:inline">Belum Update</span>
+                <button onclick="fetchData()" class="text-sm bg-indigo-100 text-indigo-600 px-4 py-2 rounded-lg hover:bg-indigo-200 transition font-medium">
+                    <i class="fas fa-sync-alt mr-2"></i> Refresh
+                </button>
+            </div>
         </div>
     </header>
 
-    <main class="max-w-5xl mx-auto px-4 py-8">
-        
-        <!-- Kartu Total Suara -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 text-center">
-                <h3 class="text-gray-500 text-sm font-medium uppercase">Total Suara Masuk</h3>
-                <p id="total-suara" class="text-4xl font-bold text-blue-600 mt-2">-</p>
+    <main class="max-w-7xl mx-auto px-4 py-8">
+
+        <!-- KARTU RINGKASAN TOTAL -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            <!-- Total Suara OSIS -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 border-l-4 border-blue-500">
+                <h3 class="text-gray-500 text-xs font-bold uppercase tracking-wider">Suara Masuk (OSIS)</h3>
+                <div class="flex items-baseline mt-2">
+                    <span id="total-osis" class="text-3xl font-bold text-gray-800">0</span>
+                    <span class="ml-2 text-sm text-gray-400">Suara</span>
+                </div>
             </div>
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 text-center">
-                <h3 class="text-gray-500 text-sm font-medium uppercase">Suara Terbanyak</h3>
-                <p id="top-candidate" class="text-2xl font-bold text-green-600 mt-2">-</p>
+            <!-- Total Suara DP Putra -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 border-l-4 border-green-500">
+                <h3 class="text-gray-500 text-xs font-bold uppercase tracking-wider">Suara Masuk (DP Putra)</h3>
+                <div class="flex items-baseline mt-2">
+                    <span id="total-pa" class="text-3xl font-bold text-gray-800">0</span>
+                    <span class="ml-2 text-sm text-gray-400">Suara</span>
+                </div>
             </div>
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 text-center">
-                <h3 class="text-gray-500 text-sm font-medium uppercase">Status Data</h3>
-                <p id="last-update" class="text-sm font-medium text-gray-600 mt-3">Belum Update</p>
+            <!-- Total Suara DP Putri -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 border-l-4 border-pink-500">
+                <h3 class="text-gray-500 text-xs font-bold uppercase tracking-wider">Suara Masuk (DP Putri)</h3>
+                <div class="flex items-baseline mt-2">
+                    <span id="total-pi" class="text-3xl font-bold text-gray-800">0</span>
+                    <span class="ml-2 text-sm text-gray-400">Suara</span>
+                </div>
             </div>
         </div>
 
-        <!-- Grafik Utama -->
-        <div class="bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-gray-100 mb-8">
-            <h2 class="text-xl font-bold mb-6 text-center">Grafik Perolehan Suara</h2>
-            <div class="relative h-[300px] md:h-[400px] w-full">
-                <canvas id="votingChart"></canvas>
+        <!-- GRAFIK 1: KETUA OSIS -->
+        <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 mb-8">
+            <h2 class="text-xl font-bold mb-4 text-gray-800 border-b pb-2">1. Perolehan Suara Ketua OSIS</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-2 relative h-[300px]">
+                    <canvas id="chartOsis"></canvas>
+                </div>
+                <div class="space-y-4">
+                    <!-- Detail Kandidat 1 -->
+                    <div class="p-4 bg-blue-50 rounded-lg border border-blue-100">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-bold text-blue-800 text-sm">01. Dika & Kamelia</span>
+                            <span id="val-osis-1" class="font-bold text-blue-600 text-lg">0</span>
+                        </div>
+                        <div class="w-full bg-blue-200 rounded-full h-2">
+                            <div id="bar-osis-1" class="bg-blue-600 h-2 rounded-full" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <!-- Detail Kandidat 2 -->
+                    <div class="p-4 bg-indigo-50 rounded-lg border border-indigo-100">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-bold text-indigo-800 text-sm">02. Aurel & Sidik</span>
+                            <span id="val-osis-2" class="font-bold text-indigo-600 text-lg">0</span>
+                        </div>
+                        <div class="w-full bg-indigo-200 rounded-full h-2">
+                            <div id="bar-osis-2" class="bg-indigo-600 h-2 rounded-full" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- Tabel Detail -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
-                <h3 class="font-bold text-gray-700">Rincian Perolehan</h3>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            <!-- GRAFIK 2: DP PUTRA -->
+            <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+                <h2 class="text-lg font-bold mb-4 text-gray-800 border-b pb-2">2. Ketua DP Putra</h2>
+                <div class="relative h-[250px]">
+                    <canvas id="chartDpPa"></canvas>
+                </div>
+                <div class="mt-4 grid grid-cols-2 gap-4">
+                    <div class="text-center p-3 bg-green-50 rounded-lg">
+                        <p class="text-xs text-gray-500 font-bold">Galih Priyadi</p>
+                        <p id="val-pa-1" class="text-xl font-bold text-green-600">0</p>
+                    </div>
+                    <div class="text-center p-3 bg-teal-50 rounded-lg">
+                        <p class="text-xs text-gray-500 font-bold">Gian Aditya</p>
+                        <p id="val-pa-2" class="text-xl font-bold text-teal-600">0</p>
+                    </div>
+                </div>
             </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm text-gray-600">
-                    <thead class="bg-gray-50 text-xs uppercase font-semibold text-gray-500">
-                        <tr>
-                            <th class="px-6 py-3">No. Paslon</th>
-                            <th class="px-6 py-3">Nama Kandidat</th>
-                            <th class="px-6 py-3 text-right">Jumlah Suara</th>
-                            <th class="px-6 py-3 text-right">Persentase</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100">
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-6 py-4 font-medium text-gray-900">01</td>
-                            <td class="px-6 py-4">Andi & Budi</td>
-                            <td id="suara-01" class="px-6 py-4 text-right font-bold text-blue-600">0</td>
-                            <td id="persen-01" class="px-6 py-4 text-right">0%</td>
-                        </tr>
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-6 py-4 font-medium text-gray-900">02</td>
-                            <td class="px-6 py-4">Wati & Ani</td>
-                            <td id="suara-02" class="px-6 py-4 text-right font-bold text-blue-600">0</td>
-                            <td id="persen-02" class="px-6 py-4 text-right">0%</td>
-                        </tr>
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-6 py-4 font-medium text-gray-900">03</td>
-                            <td class="px-6 py-4">Zaenal & Arifin</td>
-                            <td id="suara-03" class="px-6 py-4 text-right font-bold text-blue-600">0</td>
-                            <td id="persen-03" class="px-6 py-4 text-right">0%</td>
-                        </tr>
-                    </tbody>
-                </table>
+
+            <!-- GRAFIK 3: DP PUTRI -->
+            <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+                <h2 class="text-lg font-bold mb-4 text-gray-800 border-b pb-2">3. Ketua DP Putri</h2>
+                <div class="relative h-[250px]">
+                    <canvas id="chartDpPi"></canvas>
+                </div>
+                <div class="mt-4 grid grid-cols-2 gap-4">
+                    <div class="text-center p-3 bg-pink-50 rounded-lg">
+                        <p class="text-xs text-gray-500 font-bold">Denaya Septiani</p>
+                        <p id="val-pi-1" class="text-xl font-bold text-pink-600">0</p>
+                    </div>
+                    <div class="text-center p-3 bg-rose-50 rounded-lg">
+                        <p class="text-xs text-gray-500 font-bold">Saikoh Nur Azizah</p>
+                        <p id="val-pi-2" class="text-xl font-bold text-rose-600">0</p>
+                    </div>
+                </div>
             </div>
+
         </div>
 
     </main>
 
-    <footer class="text-center py-6 text-gray-400 text-xs">
-        &copy; 2026 Tim IT SMPN 4 Majenang
-    </footer>
-
     <script>
         // === KONFIGURASI ===
-        // 1. Ubah ke TRUE jika Google Script sudah dideploy
         const USE_GOOGLE_SHEET = true; 
-        
-        // 2. Masukkan URL Web App Script Anda (SAMA DENGAN APLIKASI VOTING)
+        // Masukkan URL Web App Script yang SAMA dengan aplikasi voting
         const GAS_URL = "https://script.google.com/macros/s/AKfycbxrrDcdrGmRyFzRiI5gF5k11cbzuEeK5PFj4jOEp0AsXZmyscyM_ezROs1M4RyFu_e5/exec"; 
 
-        // Inisialisasi Chart
-        const ctx = document.getElementById('votingChart').getContext('2d');
-        const votingChart = new Chart(ctx, {
-            type: 'bar', // Bisa diganti 'pie' atau 'doughnut'
+        // --- INISIALISASI CHART ---
+        
+        // 1. Chart OSIS
+        const ctxOsis = document.getElementById('chartOsis').getContext('2d');
+        const chartOsis = new Chart(ctxOsis, {
+            type: 'bar',
             data: {
-                labels: ['Paslon 01 (Andi & Budi)', 'Paslon 02 (Wati & Ani)', 'Paslon 03 (Zaenal & Arifin)'],
+                labels: ['01. Dika & Kamelia', '02. Aurel & Sidik'],
                 datasets: [{
-                    label: 'Jumlah Suara',
-                    data: [0, 0, 0],
-                    backgroundColor: [
-                        'rgba(59, 130, 246, 0.7)', // Biru
-                        'rgba(16, 185, 129, 0.7)', // Hijau
-                        'rgba(245, 158, 11, 0.7)'  // Orange
-                    ],
-                    borderColor: [
-                        'rgb(59, 130, 246)',
-                        'rgb(16, 185, 129)',
-                        'rgb(245, 158, 11)'
-                    ],
-                    borderWidth: 2,
-                    borderRadius: 8
+                    label: 'Suara',
+                    data: [0, 0],
+                    backgroundColor: ['#3B82F6', '#6366F1'],
+                    borderRadius: 8,
+                    barThickness: 50
                 }]
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false } // Sembunyikan legend untuk chart bar
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: { color: '#f3f4f6' }
-                    }
-                }
-            }
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: {display: false} }, scales: { y: { beginAtZero: true } } }
         });
 
-        // Fungsi Ambil Data
+        // 2. Chart DP Putra
+        const ctxPa = document.getElementById('chartDpPa').getContext('2d');
+        const chartPa = new Chart(ctxPa, {
+            type: 'doughnut',
+            data: {
+                labels: ['Galih Priyadi', 'Gian Aditya'],
+                datasets: [{
+                    data: [0, 0],
+                    backgroundColor: ['#10B981', '#14B8A6'],
+                    borderWidth: 0
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+
+        // 3. Chart DP Putri
+        const ctxPi = document.getElementById('chartDpPi').getContext('2d');
+        const chartPi = new Chart(ctxPi, {
+            type: 'doughnut',
+            data: {
+                labels: ['Denaya Septiani', 'Saikoh Nur Azizah'],
+                datasets: [{
+                    data: [0, 0],
+                    backgroundColor: ['#EC4899', '#F43F5E'],
+                    borderWidth: 0
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+
+        // --- FUNGSI AMBIL DATA ---
         async function fetchData() {
-            // Update status loading
-            document.getElementById('last-update').innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Sedang memuat...';
+            const statusEl = document.getElementById('last-update');
+            statusEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
 
             try {
                 let data;
-
                 if (USE_GOOGLE_SHEET) {
                     // Panggil Script dengan action=getResults
                     const response = await fetch(`${GAS_URL}?action=getResults`);
                     data = await response.json();
                 } else {
-                    // Simulasi Data Dummy (Jika offline)
+                    // Mock Data Offline
                     await new Promise(r => setTimeout(r, 1000));
-                    data = { "Paslon 01": 120, "Paslon 02": 85, "Paslon 03": 200 };
+                    data = {
+                        osis: { "Paslon 01 (Dika & Kamelia)": 150, "Paslon 02 (Aurel & Sidik)": 120 },
+                        dp_pa: { "Galih Priyadi (No. 1)": 80, "Gian Aditya (No. 2)": 90 },
+                        dp_pi: { "Denaya Septiani (No. 1)": 100, "Saikoh Nur Azizah (No. 2)": 110 }
+                    };
                 }
-
-                updateUI(data);
+                updateCharts(data);
+                
+                const now = new Date();
+                statusEl.textContent = 'Update: ' + now.toLocaleTimeString();
 
             } catch (error) {
-                console.error("Gagal mengambil data:", error);
-                document.getElementById('last-update').textContent = "Gagal memuat data";
+                console.error(error);
+                statusEl.textContent = "Gagal mengambil data";
             }
         }
 
-        // Fungsi Update Tampilan
-        function updateUI(data) {
-            const p1 = data["Paslon 01"] || 0;
-            const p2 = data["Paslon 02"] || 0;
-            const p3 = data["Paslon 03"] || 0;
-            const total = p1 + p2 + p3;
+        function updateCharts(data) {
+            // --- 1. UPDATE OSIS ---
+            // Sesuaikan "key" dengan string yang dikirim dari file voting
+            const osis1 = data.osis["Paslon 01 (Dika & Kamelia)"] || 0;
+            const osis2 = data.osis["Paslon 02 (Aurel & Sidik)"] || 0;
+            const totalOsis = osis1 + osis2;
 
-            // 1. Update Angka Total & Detail
-            document.getElementById('total-suara').textContent = total;
-            document.getElementById('suara-01').textContent = p1;
-            document.getElementById('suara-02').textContent = p2;
-            document.getElementById('suara-03').textContent = p3;
+            chartOsis.data.datasets[0].data = [osis1, osis2];
+            chartOsis.update();
+            
+            document.getElementById('total-osis').textContent = totalOsis;
+            document.getElementById('val-osis-1').textContent = osis1;
+            document.getElementById('val-osis-2').textContent = osis2;
+            
+            // Update Progress Bar
+            document.getElementById('bar-osis-1').style.width = totalOsis ? (osis1/totalOsis*100) + '%' : '0%';
+            document.getElementById('bar-osis-2').style.width = totalOsis ? (osis2/totalOsis*100) + '%' : '0%';
 
-            // 2. Hitung Persentase
-            document.getElementById('persen-01').textContent = total ? Math.round((p1/total)*100) + '%' : '0%';
-            document.getElementById('persen-02').textContent = total ? Math.round((p2/total)*100) + '%' : '0%';
-            document.getElementById('persen-03').textContent = total ? Math.round((p3/total)*100) + '%' : '0%';
+            // --- 2. UPDATE DP PUTRA ---
+            const pa1 = data.dp_pa["Galih Priyadi (No. 1)"] || 0;
+            const pa2 = data.dp_pa["Gian Aditya (No. 2)"] || 0;
+            
+            chartPa.data.datasets[0].data = [pa1, pa2];
+            chartPa.update();
+            document.getElementById('total-pa').textContent = pa1 + pa2;
+            document.getElementById('val-pa-1').textContent = pa1;
+            document.getElementById('val-pa-2').textContent = pa2;
 
-            // 3. Update Chart
-            votingChart.data.datasets[0].data = [p1, p2, p3];
-            votingChart.update();
+            // --- 3. UPDATE DP PUTRI ---
+            const pi1 = data.dp_pi["Denaya Septiani (No. 1)"] || 0;
+            const pi2 = data.dp_pi["Saikoh Nur Azizah (No. 2)"] || 0;
 
-            // 4. Update Suara Terbanyak
-            let winner = "-";
-            let maxVote = Math.max(p1, p2, p3);
-            if (total > 0) {
-                if (maxVote === p1) winner = "Paslon 01";
-                else if (maxVote === p2) winner = "Paslon 02";
-                else if (maxVote === p3) winner = "Paslon 03";
-            }
-            document.getElementById('top-candidate').textContent = winner;
-
-            // 5. Update Waktu
-            const now = new Date();
-            document.getElementById('last-update').textContent = 'Update: ' + now.toLocaleTimeString();
+            chartPi.data.datasets[0].data = [pi1, pi2];
+            chartPi.update();
+            document.getElementById('total-pi').textContent = pi1 + pi2;
+            document.getElementById('val-pi-1').textContent = pi1;
+            document.getElementById('val-pi-2').textContent = pi2;
         }
 
-        // Jalankan saat halaman dibuka
+        // Auto Refresh
         fetchData();
-
-        // (Opsional) Auto-refresh setiap 30 detik
-        setInterval(fetchData, 30000);
+        setInterval(fetchData, 15000); // Update tiap 15 detik
 
     </script>
 </body>
