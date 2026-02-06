@@ -154,7 +154,7 @@
         const chartOsis = new Chart(ctxOsis, {
             type: 'bar',
             data: {
-                labels: ['01. Dika & Kamelia', '02. Aurel & Sidik'],
+                labels: ['01. Dika dan Kamelia', '02. Aureldan Sidik'],
                 datasets: [{
                     label: 'Suara',
                     data: [0, 0],
@@ -211,7 +211,7 @@
                     // Mock Data Offline
                     await new Promise(r => setTimeout(r, 1000));
                     data = {
-                        osis: { "Paslon 01 (Dika & Kamelia)": 150, "Paslon 02 (Aurel & Sidik)": 120 },
+                        osis: { "Paslon 01 (Dika dan Kamelia)": 150, "Paslon 02 (Aurel dan Sidik)": 120 },
                         dp_pa: { "Galih Priyadi (No. 1)": 80, "Gian Aditya (No. 2)": 90 },
                         dp_pi: { "Denaya Septiani (No. 1)": 100, "Saikoh Nur Azizah (No. 2)": 110 }
                     };
@@ -230,8 +230,8 @@
         function updateCharts(data) {
             // --- 1. UPDATE OSIS ---
             // Sesuaikan "key" dengan string yang dikirim dari file voting
-            const osis1 = data.osis["Paslon 01 (Dika & Kamelia)"] || 0;
-            const osis2 = data.osis["Paslon 02 (Aurel & Sidik)"] || 0;
+            const osis1 = data.osis["Paslon 01 (Dika dan Kamelia)"] || 0;
+            const osis2 = data.osis["Paslon 02 (Aurel dan Sidik)"] || 0;
             const totalOsis = osis1 + osis2;
 
             chartOsis.data.datasets[0].data = [osis1, osis2];
